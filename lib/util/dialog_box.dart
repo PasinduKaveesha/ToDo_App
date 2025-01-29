@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_app_for_flutter/util/button.dart';
+import 'package:test_app_for_flutter/util/warning_Box.dart';
 // import 'package:todo_app/util/button.dart';
 
 class DialogBox extends StatelessWidget {
@@ -51,7 +52,21 @@ class DialogBox extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  MyButton(text: "Save", onPressed: onSave),
+                  MyButton(
+                    text: "Save",
+                    onPressed: () {
+                      if (controller.text.isEmpty) {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return const WarningDialog();
+                          },
+                        );
+                      } else {
+                        onSave;
+                      }
+                    },
+                  ),
                   MyButton(text: "Cancel", onPressed: onCancel),
                 ],
               )

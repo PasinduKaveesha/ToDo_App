@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:test_app_for_flutter/util/button.dart';
 import 'package:test_app_for_flutter/util/delete_box.dart';
+import 'package:test_app_for_flutter/util/warning_Box.dart';
 
 // ignore: must_be_immutable
 class TodoTile extends StatefulWidget {
@@ -26,7 +27,6 @@ class _TodoTileState extends State<TodoTile> {
   TextEditingController updatingtext = TextEditingController();
 
   void updateTile(BuildContext context) {
-    
     updatingtext.text = widget.taskName;
 
     showDialog(
@@ -36,22 +36,25 @@ class _TodoTileState extends State<TodoTile> {
           backgroundColor: Colors.yellow,
           title: Text('Update Task'),
           content: TextField(
-            controller: updatingtext, 
+            controller: updatingtext,
           ),
           actions: [
             MyButton(
               text: "Update",
               onPressed: () {
-            
-                setState(() {
-              
-                  widget.taskName = updatingtext.text;
-
-      
-                });
-
-          
-                Navigator.of(context).pop();
+                if (updatingtext.text.isEmpty) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return const WarningDialog();
+                    },
+                  );
+                } else {
+                  setState(() {
+                    widget.taskName = updatingtext.text;
+                  });
+                  Navigator.of(context).pop();
+                }
               },
             ),
             MyButton(
