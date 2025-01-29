@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:test_app_for_flutter/data/database.dart';
 import 'package:test_app_for_flutter/util/dialog_box.dart';
+import 'package:test_app_for_flutter/util/searchbar.dart';
 import 'package:test_app_for_flutter/util/todo_tile.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,6 +17,8 @@ class _HomePageState extends State<HomePage> {
   //reference the box
   final _myBox = Hive.box('myBox');
   toDoDataBase db = toDoDataBase();
+  final TextEditingController searchcontrol = TextEditingController();
+  List<dynamic> filterdtoDoList = [];
 
   @override
   void initState() {
@@ -25,6 +28,7 @@ class _HomePageState extends State<HomePage> {
     } else {
       db.loadData();
     }
+    filterdtoDoList = db.toDoList;
     super.initState();
   }
 
@@ -65,9 +69,20 @@ class _HomePageState extends State<HomePage> {
 //delete Task
   void deleteTask(int index) {
     setState(() {
-      db.toDoList.removeAt(index);
+      db.toDoList.removeAt(db.toDoList.indexOf(filterdtoDoList[index]));
+      filterTasks(searchcontrol.text);
     });
     db.updateData();
+  }
+
+  //search tasks
+  void filterTasks(String searchText) {
+    setState(() {
+      filterdtoDoList = db.toDoList
+          .where((task) =>
+              task[0].toLowerCase().contains(searchText.toLowerCase()))
+          .toList();
+    });
   }
 
   @override
@@ -83,16 +98,32 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
         backgroundColor: Colors.amber,
       ),
-      body: ListView.builder(
-        itemCount: db.toDoList.length,
-        itemBuilder: (context, index) {
-          return TodoTile(
-            taskName: db.toDoList[index][0],
-            taskCompleted: db.toDoList[index][1],
-            onChanged: (value) => checkBoxChanged(value, index),
-            deleteFunction: (context) => deleteTask(index),
-          );
-        },
+      body: Column(
+        children: [
+          if (db.toDoList.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Searchbar(
+                onsearchChanged: filterTasks,
+                searchController: searchcontrol,
+              ),
+            ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: filterdtoDoList.length,
+              itemBuilder: (context, index) {
+                return TodoTile(
+                  taskName: filterdtoDoList[index][0],
+                  taskCompleted: filterdtoDoList[index][1],
+                  onChanged: (value) => checkBoxChanged(
+                      value, db.toDoList.indexOf(filterdtoDoList[index])),
+                  deleteFunction: (context) =>
+                      deleteTask(db.toDoList.indexOf(filterdtoDoList[index])),
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: Transform.scale(
         scale: 1.2,
